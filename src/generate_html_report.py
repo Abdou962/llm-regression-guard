@@ -22,7 +22,6 @@ from src.report_utils import (
 
 
 def main():
-    """Main function to generate the diff report."""
     data_dir = os.path.join(PROJECT_ROOT, "data")
     diff_path = os.path.join(data_dir, "diff_report.json")
     prev_path = os.path.join(data_dir, "raw_outputs_prev.json")

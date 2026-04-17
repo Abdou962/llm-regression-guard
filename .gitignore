@@ -32,9 +32,13 @@ data/diff_report.html
 data/raw_outputs.json
 data/raw_outputs_prev.json
 data/trend.json
+data/pipeline_history.db
 
 # ── Tool-specific ──
 .sixth/
 .ruff_cache/
 .pytest_cache/
 *.xml
+
+# ── Local docs ──
+DIAGRAMS.md

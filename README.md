@@ -4,7 +4,8 @@
 	<img src="https://img.shields.io/badge/python-3.11%2B-blue" alt="Python 3.11+"/>
 	<img src="https://img.shields.io/badge/CI-GitHub%20Actions-blue?logo=githubactions&logoColor=white" alt="CI"/>
 	<img src="https://img.shields.io/badge/LLM-Claude%20API-blueviolet" alt="Claude API"/>
-	<img src="https://img.shields.io/badge/license-MIT-green" alt="License"/>
+	<img src="https://img.shields.io/badge/tests-129%20passing-success" alt="Tests"/>
+	<img src="https://img.shields.io/badge/coverage-%E2%89%A550%25-yellow" alt="Coverage"/>
 </p>
 
 # LLM Regression Detection & Reporting Pipeline
@@ -12,96 +13,202 @@
 
 ## Overview
 
-This repository provides a production-ready pipeline for evaluating LLM-based features (such as a customer support email classifier) against a hand-labeled golden dataset. It tracks regressions, generates HTML reports, sends Slack alerts, and detects slow drift in model performance. All prompt versions and test data are versioned for CI/CD compatibility.
+A production-ready pipeline that evaluates an LLM-based email classifier against a hand-labeled golden dataset, detects regressions, generates HTML reports, stores run history in SQLite, and sends Slack alerts.
 
 
 ## Features
 
-- **LLM Feature Under Test:** Modular Python function for email classification (category + summary), with prompt as a configurable parameter.
-- **Prompt Versioning:** Prompts are stored as YAML files in `/prompts`, each with version, timestamp, system prompt, and few-shot examples.
-- **Golden Dataset:** Hand-labeled, versioned JSON in `/data`, with realistic and edge-case emails, expected outputs, difficulty tags, and notes.
-- **Evaluation Engine:** Runs all test cases, collects outputs, scores on multiple dimensions (category, summary, latency, tokens), and diffs against previous runs.
-- **Reporting & Alerting:** Generates HTML diff reports, sends Slack alerts (pass/warn/fail/slow drift), and tracks 7-run moving averages for drift detection.
-- **CI/CD Ready:** Designed for integration with GitHub Actions and containerization (Dockerfile recommended).
+- **3-Mode Classifier:** Real (Claude API), async batch, or dummy (keyword fallback for CI)
+- **Prompt Versioning:** YAML-based prompts in `/prompts` with version, timestamp, and few-shot examples
+- **Golden Dataset:** 40 hand-labeled test cases in `/data` with difficulty tags and edge cases
+- **Diff Engine:** Compares current vs. previous run (from SQLite DB), computes per-category accuracy, flags regressions/improvements
+- **SQLite History:** Stores every run, classification, and diff result for fast querying and trend analysis
+- **HTML Reports:** Scorecard, per-category tables, SVG trend chart, regression/improvement details
+- **Slack Alerts:** Pass/warn/fail alerts + slow drift detection (7-run moving average)
+- **CI/CD:** GitHub Actions with lint, tests (Python 3.11 + 3.12), regression checks, and artifact uploads
+
+
+## Architecture
+
+```
+run_full_pipeline.py                # Orchestrator (3 sequential steps)
+  ├── src/run_model_on_golden.py    # Step 1: Classify → raw_outputs.json → save to DB
+  ├── src/diff_eval.py              # Step 2: Load previous from DB → diff → save diff to DB
+  └── src/generate_html_report.py   # Step 3: HTML report + trend + Slack alerts
+```
+
+### Data Flow
+
+```
+golden_dataset_v1.json
+        │
+        ▼
+  ┌─────────────┐     save run      ┌──────────────────┐
+  │  Step 1      │ ───────────────→  │ pipeline_history  │
+  │  Classify    │                   │     .db           │
+  └──────┬───────┘                   │                   │
+         │ raw_outputs.json          │  runs             │
+         ▼                           │  classifications  │
+  ┌─────────────┐  load previous     │  diffs            │
+  │  Step 2      │ ←──────────────── │                   │
+  │  Diff        │ ───────────────→  └──────────────────┘
+  └──────┬───────┘     save diff
+         │ diff_report.json
+         ▼
+  ┌─────────────┐
+  │  Step 3      │ → diff_report.html
+  │  Report      │ → trend.json
+  │              │ → Slack Alert
+  └─────────────┘
+```
+
+### Key Modules
+
+| Module | Purpose |
+|--------|---------|
+| `src/email_classifier.py` | Core classifier — Claude API with retry + robust JSON parsing |
+| `src/async_eval_classifier.py` | Async batch evaluation with LLM-as-judge scoring |
+| `src/diff_eval.py` | Pass rates, per-category accuracy, regressions/improvements |
+| `src/db.py` | SQLite storage — runs, classifications, diffs tables |
+| `src/report_html.py` | HTML report with scorecard, tables, SVG trend chart |
+| `src/report_utils.py` | JSON/YAML I/O, metadata extraction, trend history |
+| `Scripts/slack_alerter.py` | Slack webhook alerts (pass/warn/fail) |
 
 
 ## Getting Started
 
-### 1. Clone the repository and install dependencies
+### 1. Clone and install
 
 ```bash
 git clone <your-repo-url>
-cd llm-regression-pipeline
-python -m venv .venv && .venv/Scripts/activate   # Windows
+cd llm-regression-guard
+python -m venv .venv
+# Windows
+.venv\Scripts\activate
+# Linux/macOS
+source .venv/bin/activate
+
 pip install -r requirements.txt
 ```
 
-### 2. Configure environment variables
+### 2. Configure environment
+
+Create a `.env` file (or set environment variables):
 
 ```bash
-cp .env.example .env
-# Then edit .env with your actual API keys and webhook URL
+ANTHROPIC_API_KEY=sk-ant-...       # Optional — dummy mode if unset
+SLACK_WEBHOOK_URL=https://...      # Optional — no alerts if unset
+CLAUDE_MODEL=claude-sonnet-4-20250514  # Optional — default model
 ```
 
-
-### 3. Directory structure
-
-- `/src`: Core pipeline scripts (model runner, diff, report)
-- `/prompts`: Versioned prompt YAMLs
-- `/data`: Golden dataset JSON(s)
-- `/Scripts`: Slack alerting utilities
-- `run_full_pipeline.py`: Orchestrates the full workflow
-
-
-## Usage
-
-### Run the full pipeline
+### 3. Run the pipeline
 
 ```bash
 python run_full_pipeline.py
 ```
 
 This will:
-- Run the LLM feature on the golden dataset
-- Diff results against the previous run
-- Generate an HTML report (auto-opens)
-- Send Slack alerts if regressions or drift are detected
+1. Run the classifier on all 40 golden dataset cases
+2. Save the run + classifications to `pipeline_history.db`
+3. Load the previous run from the DB and compute the diff
+4. Save the diff results to the DB
+5. Generate an HTML report and send Slack alerts if needed
 
-### Add new test cases
-- Edit `/data/golden_dataset_v1.json` and add new entries (with `id`, `input`, `expected output`, `difficulty`, `notes`)
+### 4. Run tests
 
-### Add or update prompts
-- Place new YAML files in `/prompts` with version, timestamp, and prompt content
-
-### Adjust thresholds
-- Edit `.env` or set environment variables for pass/warn/fail/drift thresholds
-
-
-## CI/CD Integration
-
-- Add a GitHub Action to run `python run_full_pipeline.py` on PRs that modify `/prompts` or `/data`
-- Block merges if critical regressions are detected
+```bash
+python -m pytest tests/ -v                          # All 129 tests
+python -m pytest tests/ -v --cov=src --cov=Scripts   # With coverage
+python -m pytest tests/test_db.py -v                 # DB tests only
+```
 
 
-## Containerization
+## Project Structure
 
-- Write a `Dockerfile` that installs requirements and runs the pipeline
-- Pass API keys and configs as environment variables
+```
+├── run_full_pipeline.py        # Pipeline orchestrator
+├── src/
+│   ├── email_classifier.py     # Claude API classifier
+│   ├── async_eval_classifier.py # Async batch eval
+│   ├── run_model_on_golden.py  # Step 1: classify + save to DB
+│   ├── diff_eval.py            # Step 2: diff (DB-backed)
+│   ├── generate_html_report.py # Step 3: report + alerts
+│   ├── db.py                   # SQLite storage
+│   ├── report_html.py          # HTML generation
+│   └── report_utils.py         # JSON/YAML utilities
+├── Scripts/
+│   ├── slack_alerter.py        # Slack webhook
+│   └── slack_utils.py          # Status colors/emojis
+├── data/
+│   ├── golden_dataset_v1.json  # 40 hand-labeled test cases
+│   ├── raw_outputs.json        # Current run results
+│   ├── diff_report.json        # Comparison results
+│   ├── diff_report.html        # HTML report
+│   ├── trend.json              # Pass rate history
+│   └── pipeline_history.db     # SQLite run history (generated)
+├── prompts/
+│   └── v1_billing_classifier.yaml
+├── tests/                      # 129 tests
+│   ├── test_email_classifier.py
+│   ├── test_db.py              # 28 DB tests
+│   ├── test_diff_eval.py
+│   ├── test_report_html.py
+│   ├── test_report_utils.py
+│   ├── test_dummy_classifier.py
+│   ├── test_slack.py
+│   └── test_pipeline_integration.py
+├── .github/workflows/
+│   └── regression.yml          # CI: lint, test, regression, docker
+├── Dockerfile
+├── pyproject.toml
+└── requirements.txt
+```
 
 
-## Architecture Decisions
+## Classifier Modes
 
-- **Hand-labeled data:** All golden dataset entries are human-verified for maximum evaluation quality
-- **Prompt versioning:** Prompts are treated as code and versioned for reproducibility
-- **Multi-dimensional scoring:** Goes beyond accuracy to measure summary quality, latency, and token usage
-- **Drift detection:** 7-run moving average catches slow degradation missed by per-run checks
-- **Slack alerting:** Ensures visibility for regressions and slow drift
+| Mode | When | How |
+|------|------|-----|
+| **Dummy** | No `ANTHROPIC_API_KEY` | Keyword-based rules (92.5% accuracy) |
+| **Real (sync)** | Valid API key | Claude API, one call per case |
+| **Async** | Valid API key + `USE_ASYNC_EVAL=true` | Async batch with LLM-as-judge |
 
 
-## Extending the System
+## Threshold Configuration
 
-- Add new LLM features as new Python functions and prompt configs
-- Expand the golden dataset with new/edge cases as failures are discovered
-- Tune thresholds and alerting logic as needed
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DIFF_WARNING_THRESHOLD` | `0.03` | Warning if delta ≥ 3% |
+| `DIFF_CRITICAL_THRESHOLD` | `0.08` | Critical if delta ≥ 8% |
+| `SLOW_DRIFT_THRESHOLD` | `0.90` | Alert if 7-run avg < 90% |
+
+
+## SQLite Database
+
+The pipeline stores all runs in `data/pipeline_history.db` with 3 tables:
+
+- **`runs`** — One row per pipeline execution (timestamp, model, pass rate, flag, delta)
+- **`classifications`** — One row per test case per run (predicted vs expected, correct, latency)
+- **`diffs`** — One row per diff (pass rates, per-category accuracy, regressions, improvements)
+
+Query functions in `src/db.py`: `get_latest_runs()`, `get_case_history()`, `get_category_history()`, `compare_runs()`, `get_latest_diffs()`, etc.
+
+
+## CI/CD
+
+GitHub Actions workflow (`.github/workflows/regression.yml`) runs 5 jobs:
+
+1. **Lint & Format** — `ruff check` + `ruff format --check`
+2. **Unit Tests** — Python 3.11 + 3.12 matrix, 129 tests, ≥50% coverage
+3. **Regression (Dummy)** — Full pipeline + integration tests + DB verification
+4. **Regression (Real)** — Claude API + async eval + Slack alerts (on push to main / schedule / manual)
+5. **Docker** — Build verification
+
+Artifacts (reports + DB) are uploaded with 30-day (dummy) / 90-day (real) retention.
+
+
+## Categories
+
+6 valid categories: `billing`, `technical`, `account`, `general`, `feature_request`, `security`
 
 ---
