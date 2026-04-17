@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+.sixth/
+data/diff_report.html
+data/raw_outputs*.json
+data/trend.json
+.git/
+.github/

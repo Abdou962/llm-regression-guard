@@ -1,0 +1,40 @@
+# ── Python ──
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ── Virtual Environments ──
+.venv/
+venv/
+env/
+
+# ── Environment / Secrets ──
+.env
+
+# ── IDE ──
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ── OS ──
+.DS_Store
+Thumbs.db
+
+# ── Pipeline Generated Outputs ──
+data/diff_report.html
+data/raw_outputs.json
+data/raw_outputs_prev.json
+data/trend.json
+
+# ── Tool-specific ──
+.sixth/
+.ruff_cache/
+.pytest_cache/
+*.xml

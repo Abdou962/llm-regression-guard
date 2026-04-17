@@ -1,0 +1,259 @@
+name: LLM Regression Pipeline
+
+on:
+  pull_request:
+    paths:
+      - "prompts/**"
+      - "data/golden_dataset_v1.json"
+      - "src/**"
+      - "Scripts/**"
+      - "tests/**"
+      - "requirements.txt"
+  push:
+    branches: [main]
+    paths:
+      - "prompts/**"
+      - "data/golden_dataset_v1.json"
+      - "src/**"
+      - "Scripts/**"
+  schedule:
+    # Run daily at 08:00 UTC to catch slow drift
+    - cron: "0 8 * * *"
+  workflow_dispatch:
+    inputs:
+      use_real_api:
+        description: "Use real Claude API (requires ANTHROPIC_API_KEY secret)"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "true"
+          - "false"
+
+env:
+  PYTHON_VERSION: "3.11"
+
+# ─────────────────────────────────────────────
+# Jobs
+# ─────────────────────────────────────────────
+jobs:
+
+  # ━━━ Job 1: Lint & Format Check ━━━
+  lint:
+    name: Lint & Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install linters
+        run: pip install ruff
+
+      - name: Run Ruff linter
+        run: ruff check src/ Scripts/ tests/ --output-format=github
+
+      - name: Run Ruff formatter check
+        run: ruff format --check src/ Scripts/ tests/
+
+  # ━━━ Job 2: Unit Tests ━━━
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run unit tests
+        run: python -m pytest tests/test_email_classifier.py -v --tb=short --junitxml=test-results.xml
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-py${{ matrix.python-version }}
+          path: test-results.xml
+
+  # ━━━ Job 3: Regression Detection (Dummy mode) ━━━
+  regression-dummy:
+    name: Regression Detection (Dummy)
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run full pipeline (dummy mode)
+        run: python run_full_pipeline.py
+
+      - name: Run integration tests
+        run: python -m pytest tests/test_pipeline_integration.py -v --tb=short
+
+      - name: Upload regression report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: regression-report-dummy
+          path: |
+            data/diff_report.html
+            data/diff_report.json
+            data/raw_outputs.json
+            data/trend.json
+          retention-days: 30
+
+      - name: Check pipeline results
+        run: |
+          python -c "
+          import json, sys
+          with open('data/diff_report.json') as f:
+              data = json.load(f)
+          flag = data.get('flag', 'UNKNOWN')
+          delta = data.get('delta', 0)
+          curr = data.get('global_pass_rate_curr', 0)
+          regs = len(data.get('regressions', []))
+          imps = len(data.get('improvements', []))
+          print(f'Status: {flag}')
+          print(f'Pass rate: {curr:.2%} (delta: {delta:+.2%})')
+          print(f'Regressions: {regs} | Improvements: {imps}')
+          if flag == 'CRITICAL':
+              print('::error::CRITICAL regression detected!')
+              sys.exit(1)
+          elif flag == 'WARNING':
+              print('::warning::Performance warning detected')
+          "
+
+  # ━━━ Job 4: Regression Detection (Real API) ━━━
+  regression-real:
+    name: Regression Detection (Claude API)
+    runs-on: ubuntu-latest
+    needs: test
+    if: >
+      (github.event_name == 'schedule') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.use_real_api == 'true') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Check API key is configured
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ] || [[ "$ANTHROPIC_API_KEY" == sk-\<* ]]; then
+            echo "::error::ANTHROPIC_API_KEY secret is not configured"
+            exit 1
+          fi
+          echo "API key is configured"
+
+      - name: Run full pipeline (real Claude API)
+        run: python run_full_pipeline.py
+        timeout-minutes: 15
+
+      - name: Upload regression report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: regression-report-real
+          path: |
+            data/diff_report.html
+            data/diff_report.json
+            data/raw_outputs.json
+            data/trend.json
+          retention-days: 90
+
+      - name: Gate — Block on critical regression
+        run: |
+          python -c "
+          import json, sys
+          with open('data/diff_report.json') as f:
+              data = json.load(f)
+          flag = data.get('flag', 'UNKNOWN')
+          delta = data.get('delta', 0)
+          curr = data.get('global_pass_rate_curr', 0)
+          regs = len(data.get('regressions', []))
+          imps = len(data.get('improvements', []))
+
+          print('=' * 50)
+          print(f'  Status     : {flag}')
+          print(f'  Pass rate  : {curr:.2%} (delta: {delta:+.2%})')
+          print(f'  Regressions: {regs}')
+          print(f'  Improvements: {imps}')
+          print('=' * 50)
+
+          if flag == 'CRITICAL':
+              print('::error::CRITICAL regression — merge blocked!')
+              sys.exit(1)
+          elif flag == 'WARNING':
+              print('::warning::Performance warning — review before merging')
+          else:
+              print('All checks passed!')
+          "
+
+  # ━━━ Job 5: Docker Build Verification ━━━
+  docker:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t llm-regression-pipeline:${{ github.sha }} .
+
+      - name: Run pipeline in Docker (dummy mode)
+        run: |
+          docker run --rm llm-regression-pipeline:${{ github.sha }}
+
+      - name: Tag as latest
+        run: docker tag llm-regression-pipeline:${{ github.sha }} llm-regression-pipeline:latest

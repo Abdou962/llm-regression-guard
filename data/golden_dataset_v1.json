@@ -1,0 +1,282 @@
+[
+  {
+    "id": "001",
+    "input": "I can't log into my account anymore.",
+    "expected_output": {"category": "account", "summary": "User cannot log into their account."},
+    "expected_difficulty": "normal",
+    "notes": "Standard account access issue."
+  },
+  {
+    "id": "002",
+    "input": "Why was I charged twice this month?",
+    "expected_output": {"category": "billing", "summary": "Customer questions double charge."},
+    "expected_difficulty": "normal",
+    "notes": "Typical billing question."
+  },
+  {
+    "id": "003",
+    "input": "App keeps crashing when I try to upload a file.",
+    "expected_output": {"category": "technical", "summary": "App crashes during file upload."},
+    "expected_difficulty": "normal",
+    "notes": "Common technical issue."
+  },
+  {
+    "id": "004",
+    "input": "What are your support hours?",
+    "expected_output": {"category": "general", "summary": "Customer asks about support hours."},
+    "expected_difficulty": "normal",
+    "notes": "General inquiry."
+  },
+  {
+    "id": "005",
+    "input": "Can't login. Help!",
+    "expected_output": {"category": "account", "summary": "User cannot log in."},
+    "expected_difficulty": "short",
+    "notes": "Very short input."
+  },
+  {
+    "id": "006",
+    "input": "I was billed $100 instead of $10. Is this a joke?",
+    "expected_output": {"category": "billing", "summary": "Customer reports incorrect billing amount, possibly sarcastic."},
+    "expected_difficulty": "sarcastic",
+    "notes": "Sarcastic tone, billing issue."
+  },
+  {
+    "id": "007",
+    "input": "App crashé encore... pourquoi?",
+    "expected_output": {"category": "technical", "summary": "App crashes again, message in French."},
+    "expected_difficulty": "multilingual",
+    "notes": "French/English mix."
+  },
+  {
+    "id": "008",
+    "input": "My accnt is lockd plz fix",
+    "expected_output": {"category": "account", "summary": "User's account is locked, message with typos."},
+    "expected_difficulty": "typos",
+    "notes": "Deliberate typos."
+  },
+  {
+    "id": "009",
+    "input": "I can't tell if this is a billing or technical problem: my invoice won't load.",
+    "expected_output": {"category": "billing", "summary": "Invoice loading issue, could be billing or technical."},
+    "expected_difficulty": "ambiguous",
+    "notes": "Ambiguous between billing and technical."
+  },
+  {
+    "id": "010",
+    "input": "Just wanted to say thanks!",
+    "expected_output": {"category": "general", "summary": "Customer expresses gratitude."},
+    "expected_difficulty": "normal",
+    "notes": "Non-problematic, positive feedback."
+  },
+  {
+    "id": "011",
+    "input": "I can't log in, and your support is useless!",
+    "expected_output": {"category": "account", "summary": "User cannot log in and is frustrated with support."},
+    "expected_difficulty": "frustrated",
+    "notes": "Frustrated tone, account issue."
+  },
+  {
+    "id": "012",
+    "input": "Why is my bill so high? I only used the service for a day!",
+    "expected_output": {"category": "billing", "summary": "Customer questions high bill for short usage."},
+    "expected_difficulty": "normal",
+    "notes": "Typical billing concern."
+  },
+  {
+    "id": "013",
+    "input": "The app is so buggy, it crashes every time I try to upload a file.",
+    "expected_output": {"category": "technical", "summary": "App crashes during file upload, user describes it as buggy."},
+    "expected_difficulty": "frustrated",
+    "notes": "Frustrated tone, technical issue."
+  },
+  {
+    "id": "014",
+    "input": "",
+    "expected_output": {"category": "general", "summary": "No input provided."},
+    "expected_difficulty": "empty",
+    "notes": "Empty input case."
+  },
+  {
+    "id": "015",
+    "input": null,
+    "expected_output": {"category": "general", "summary": "No input provided."},
+    "expected_difficulty": "null",
+    "notes": "Null input case."
+  },
+  {
+    "id": "016",
+    "input": "I can't log in, and your support is useless! Also, why is my bill so high? I only used the service for a day! The app is so buggy, it crashes every time I try to upload a file.",
+    "expected_output": {"category": "account", "summary": "User cannot log in, frustrated with support, questions high bill, and reports app crashes during file upload."},
+    "expected_difficulty": "complex",
+    "notes": "Multiple issues in one input."
+  },
+  {
+    "id": "017",
+    "input": "The app is so buggy, it crashes every time I try to log in.",
+    "expected_output": {"category": "technical", "summary": "App crashes during login, user describes it as buggy."},
+    "expected_difficulty": "frustrated",
+    "notes": "Frustrated tone, technical issue."
+  },
+  {
+    "id": "018",
+    "input": "I was charged $100 instead of $10. Is this a joke? Also, the app is so buggy, it crashes every time I try to upload a file.",
+    "expected_output": {"category": "billing", "summary": "Customer reports incorrect billing amount, possibly sarcastic, and also reports app crashes during file upload."},
+    "expected_difficulty": "complex",
+    "notes": "Multiple issues with a sarcastic tone."
+  },
+  {
+    "id": "019",
+    "input": "How do I delete my account? I want all my data removed.",
+    "expected_output": {"category": "account", "summary": "User requests account deletion and data removal."},
+    "expected_difficulty": "normal",
+    "notes": "Account deletion request."
+  },
+  {
+    "id": "020",
+    "input": "URGENT: My payment was declined but I have money on my card!!!",
+    "expected_output": {"category": "billing", "summary": "User reports payment declined despite having funds, urgent tone."},
+    "expected_difficulty": "urgent",
+    "notes": "Urgent payment issue."
+  },
+  {
+    "id": "021",
+    "input": "Can you add dark mode to the app? It hurts my eyes at night.",
+    "expected_output": {"category": "feature_request", "summary": "User requests dark mode feature for eye comfort."},
+    "expected_difficulty": "normal",
+    "notes": "Feature request."
+  },
+  {
+    "id": "022",
+    "input": "I think I got a phishing email pretending to be from you. Here's a screenshot.",
+    "expected_output": {"category": "security", "summary": "User reports potential phishing attempt impersonating the company."},
+    "expected_difficulty": "normal",
+    "notes": "Security concern."
+  },
+  {
+    "id": "023",
+    "input": "No me deja iniciar sesión, necesito ayuda por favor.",
+    "expected_output": {"category": "account", "summary": "User cannot log in, requests help in Spanish."},
+    "expected_difficulty": "multilingual",
+    "notes": "Spanish language input."
+  },
+  {
+    "id": "024",
+    "input": "I've been waiting for 3 days for a response. This is unacceptable.",
+    "expected_output": {"category": "general", "summary": "User complains about slow support response time."},
+    "expected_difficulty": "frustrated",
+    "notes": "Frustration about response time."
+  },
+  {
+    "id": "025",
+    "input": "pls fix thx",
+    "expected_output": {"category": "general", "summary": "Very short request to fix an unspecified issue with thanks."},
+    "expected_difficulty": "short",
+    "notes": "Extremely short, vague input."
+  },
+  {
+    "id": "026",
+    "input": "I need my invoice for last month for tax purposes. Can you email it to me?",
+    "expected_output": {"category": "billing", "summary": "User requests previous month's invoice for tax purposes."},
+    "expected_difficulty": "normal",
+    "notes": "Invoice request."
+  },
+  {
+    "id": "027",
+    "input": "Your app just deleted all my work. I'm furious right now.",
+    "expected_output": {"category": "technical", "summary": "User reports data loss in app, expresses anger."},
+    "expected_difficulty": "frustrated",
+    "notes": "Data loss issue, angry tone."
+  },
+  {
+    "id": "028",
+    "input": "Kann mich nicht anmelden. Hilfe bitte!",
+    "expected_output": {"category": "account", "summary": "User cannot log in, requests help in German."},
+    "expected_difficulty": "multilingual",
+    "notes": "German language input."
+  },
+  {
+    "id": "029",
+    "input": "I'm not sure if this is the right place, but I have a question about your privacy policy.",
+    "expected_output": {"category": "general", "summary": "User has question about privacy policy, hesitant tone."},
+    "expected_difficulty": "normal",
+    "notes": "Privacy policy inquiry."
+  },
+  {
+    "id": "030",
+    "input": "Can I upgrade my plan mid-month? How does prorating work?",
+    "expected_output": {"category": "billing", "summary": "User asks about mid-month plan upgrade and prorating."},
+    "expected_difficulty": "normal",
+    "notes": "Billing policy question."
+  },
+  {
+    "id": "031",
+    "input": "I forgot my password and the reset email never arrives. Checked spam already.",
+    "expected_output": {"category": "account", "summary": "User cannot reset password because reset email is not received."},
+    "expected_difficulty": "normal",
+    "notes": "Password reset email issue."
+  },
+  {
+    "id": "032",
+    "input": "Seriously? Another crash? I'm so tired of this garbage app.",
+    "expected_output": {"category": "technical", "summary": "User reports recurring crash with very frustrated, insulting tone."},
+    "expected_difficulty": "frustrated",
+    "notes": "High frustration, insulting language."
+  },
+  {
+    "id": "033",
+    "input": "Hello, I hope you're having a good day. When you have a moment, could you please help me understand why I was charged twice? Thank you so much!",
+    "expected_output": {"category": "billing", "summary": "Very polite user asks about double charge."},
+    "expected_difficulty": "polite",
+    "notes": "Extremely polite tone, billing issue."
+  },
+  {
+    "id": "034",
+    "input": "2FA not working. I'm locked out.",
+    "expected_output": {"category": "account", "summary": "User reports two-factor authentication failure and lockout."},
+    "expected_difficulty": "short",
+    "notes": "Short, specific security issue."
+  },
+  {
+    "id": "035",
+    "input": "I'd like to request a refund for the last 3 months. I haven't used the service at all.",
+    "expected_output": {"category": "billing", "summary": "User requests refund for 3 months of unused service."},
+    "expected_difficulty": "normal",
+    "notes": "Refund request for unused service."
+  },
+  {
+    "id": "036",
+    "input": "Does your app support exporting data to CSV? I need it for work.",
+    "expected_output": {"category": "feature_request", "summary": "User asks about CSV export feature for work purposes."},
+    "expected_difficulty": "normal",
+    "notes": "Feature inquiry."
+  },
+  {
+    "id": "037",
+    "input": "I'm receiving someone else's emails. I think accounts are mixed up.",
+    "expected_output": {"category": "security", "summary": "User reports receiving another person's emails, potential account cross-contamination."},
+    "expected_difficulty": "normal",
+    "notes": "Security/privacy issue."
+  },
+  {
+    "id": "038",
+    "input": "omg it finally worked after 10 tries lol nevermind",
+    "expected_output": {"category": "general", "summary": "User reports issue resolved after multiple attempts, casual tone."},
+    "expected_difficulty": "short",
+    "notes": "Casual, resolved issue."
+  },
+  {
+    "id": "039",
+    "input": "This is the 5th time I'm contacting you about the same bug. Will anyone ever fix it?",
+    "expected_output": {"category": "technical", "summary": "User reports recurring bug after multiple support contacts, expressing exasperation."},
+    "expected_difficulty": "frustrated",
+    "notes": "Recurring issue, frustration with support."
+  },
+  {
+    "id": "040",
+    "input": "I want to upgrade to premium but I'm scared because of all the bugs. What do you recommend?",
+    "expected_output": {"category": "general", "summary": "User hesitant to upgrade due to reported bugs, asks for recommendation."},
+    "expected_difficulty": "normal",
+    "notes": "Sales hesitation due to technical concerns."
+  }
+]

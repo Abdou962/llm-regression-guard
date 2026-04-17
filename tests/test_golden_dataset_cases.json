@@ -1,0 +1,65 @@
+[
+  {
+    "id": "edge-typo-1",
+    "input": "I cnat acess my acount!",
+    "expected_output": {"category": "account", "summary": "User cannot access account due to typo."},
+    "expected_difficulty": "hard",
+    "notes": "Tests typo handling."
+  },
+  {
+    "id": "edge-mixed-lang-1",
+    "input": "Bonjour, I have a billing question.",
+    "expected_output": {"category": "billing", "summary": "User asks a billing question in mixed languages."},
+    "expected_difficulty": "medium",
+    "notes": "Tests mixed language input."
+  },
+  {
+    "id": "edge-sarcasm-1",
+    "input": "Oh great, another bill. Just what I needed...",
+    "expected_output": {"category": "billing", "summary": "User is sarcastic about receiving another bill."},
+    "expected_difficulty": "hard",
+    "notes": "Tests sarcasm detection."
+  },
+  {
+    "id": "edge-ambiguous-1",
+    "input": "My account was charged twice, and now I can't log in.",
+    "expected_output": {"category": "account", "summary": "User has billing and account access issues."},
+    "expected_difficulty": "hard",
+    "notes": "Ambiguous: could be billing or account."
+  },
+  {
+    "id": "edge-short-1",
+    "input": "Help!",
+    "expected_output": {"category": "general", "summary": "User requests help with no details."},
+    "expected_difficulty": "hard",
+    "notes": "Extremely short email."
+  },
+  {
+    "id": "edge-non-english-1",
+    "input": "No puedo acceder a mi cuenta.",
+    "expected_output": {"category": "account", "summary": "User cannot access account (Spanish)."},
+    "expected_difficulty": "hard",
+    "notes": "Tests non-English input."
+  },
+  {
+    "id": "edge-html-1",
+    "input": "<b>URGENT:</b> My payment failed!",
+    "expected_output": {"category": "billing", "summary": "User's payment failed, HTML formatting present."},
+    "expected_difficulty": "medium",
+    "notes": "Tests HTML in email body."
+  },
+  {
+    "id": "edge-token-limit-1",
+    "input": "This is a very long email... lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum (repeated to test token limits)",
+    "expected_output": {"category": "general", "summary": "Very long email, tests token limits."},
+    "expected_difficulty": "hard",
+    "notes": "Tests model/token limit handling."
+  },
+  {
+    "id": "edge-irrelevant-1",
+    "input": "The weather is nice today.",
+    "expected_output": {"category": "general", "summary": "Irrelevant content, should be general."},
+    "expected_difficulty": "medium",
+    "notes": "Tests irrelevant content."
+  }
+]
