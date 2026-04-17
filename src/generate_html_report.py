@@ -5,20 +5,19 @@ import os
 import sys
 from datetime import datetime
 
-# Ensure src/ and project root are in sys.path
+# Ensure project root is in sys.path
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-SRC_DIR = os.path.dirname(os.path.abspath(__file__))
-for p in (PROJECT_ROOT, SRC_DIR):
-    if p not in sys.path:
-        sys.path.insert(0, p)
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 
-from report_utils import (
+from src.report_utils import (
     load_json,
     get_prompt_metadata,
     extract_model_from_results,
     update_trend_history,
 )
-from report_html import generate_html_report
+from src.report_html import generate_html_report
+from Scripts.slack_alerter import send_simple_alert
 
 
 def main():
@@ -72,7 +71,6 @@ def main():
         ]
         if avg < SLOW_DRIFT_THRESHOLD and all(f in (None, "OK") for f in recent_flags):
             try:
-                from Scripts.slack_alerter import send_simple_alert
                 msg = f"⏳ Slow drift detected: 7-run avg pass rate = {avg:.2%} (< {SLOW_DRIFT_THRESHOLD:.0%})"
                 send_simple_alert(msg, status="warn")
                 print("[ALERT] Slow drift warning sent to Slack.")
@@ -82,7 +80,6 @@ def main():
 
     # --- Slack alert for regression or critical/warning ---
     try:
-        from Scripts.slack_alerter import send_simple_alert
         if diff_data.get("flag") in ("CRITICAL", "WARNING"):
             msg = (
                 f"{diff_data['flag']} — Regression detected! "
