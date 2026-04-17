@@ -10,12 +10,10 @@ import pytest
 
 from src.email_classifier import (
     EmailClassification,
-    PromptConfig,
-    classify_email,
     _parse_classification,
+    classify_email,
     load_prompt_config,
 )
-
 
 # --- Helpers ---
 

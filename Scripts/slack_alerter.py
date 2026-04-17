@@ -2,9 +2,9 @@
 Slack alerting module — sends formatted alerts via webhook.
 """
 import os
+from datetime import datetime
 
 import requests
-from datetime import datetime
 
 # Load .env from project root
 try:

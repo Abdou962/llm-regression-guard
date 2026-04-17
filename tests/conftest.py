@@ -7,12 +7,13 @@ import sys
 
 import pytest
 
+from src.email_classifier import PromptConfig
+
 # Ensure project root is importable
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from src.email_classifier import PromptConfig
 
 
 @pytest.fixture
@@ -47,7 +48,7 @@ def data_dir():
 def golden_dataset(data_dir):
     """Load and return the golden dataset."""
     path = os.path.join(data_dir, "golden_dataset_v1.json")
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         return json.load(f)
 
 

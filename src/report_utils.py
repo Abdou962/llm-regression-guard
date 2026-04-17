@@ -1,10 +1,12 @@
-import os
 import json
-import yaml
+import os
 import re
 
+import yaml
+
+
 def load_json(path):
-    with open(path, 'r', encoding='utf-8') as f:
+    with open(path, encoding='utf-8') as f:
         return json.load(f)
 
 def save_json(path, data):
@@ -12,7 +14,7 @@ def save_json(path, data):
         json.dump(data, f, indent=2, ensure_ascii=False)
 
 def load_yaml(path):
-    with open(path, 'r', encoding='utf-8') as f:
+    with open(path, encoding='utf-8') as f:
         return yaml.safe_load(f)
 
 def get_prompt_metadata(prompt_path):
@@ -55,7 +57,7 @@ def update_trend_history(trend_path, run_data):
     if os.path.exists(trend_path):
         try:
             history = load_json(trend_path)
-        except:
+        except (json.JSONDecodeError, OSError):
             history = []
     history.append(run_data)
     history = history[-20:]

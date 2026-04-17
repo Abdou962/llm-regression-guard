@@ -13,11 +13,10 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
+import anthropic
 from dotenv import load_dotenv
 
-import anthropic
-
-from src.email_classifier import PromptConfig, load_prompt_config, VALID_CATEGORIES
+from src.email_classifier import VALID_CATEGORIES, PromptConfig, load_prompt_config
 
 load_dotenv(os.path.join(PROJECT_ROOT, ".env"))
 
@@ -116,7 +115,7 @@ async def run_batch(client, batch: list, prompt_config: PromptConfig) -> tuple:
 
     # Judge summaries in parallel
     judge_tasks = []
-    for case, r in zip(batch, results):
+    for case, r in zip(batch, results, strict=True):
         if r["summary"]:
             judge_tasks.append(
                 judge_summary_async(
@@ -135,19 +134,19 @@ async def run_batch(client, batch: list, prompt_config: PromptConfig) -> tuple:
 
 async def main():
     """Main async entry point."""
-    ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
-    if not ANTHROPIC_API_KEY or ANTHROPIC_API_KEY.startswith("sk-<"):
+    anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
+    if not anthropic_api_key or anthropic_api_key.startswith("sk-<"):
         print("[ERROR] Set a valid ANTHROPIC_API_KEY in .env to use async evaluation.")
         sys.exit(1)
 
     dataset_path = os.path.join(PROJECT_ROOT, "data", "golden_dataset_v1.json")
     prompt_path = os.path.join(PROJECT_ROOT, "prompts", "v1_billing_classifier.yaml")
 
-    with open(dataset_path, "r", encoding="utf-8") as f:
+    with open(dataset_path, encoding="utf-8") as f:
         dataset = json.load(f)
 
     prompt_config = load_prompt_config(prompt_path)
-    client = anthropic.AsyncAnthropic(api_key=ANTHROPIC_API_KEY)
+    client = anthropic.AsyncAnthropic(api_key=anthropic_api_key)
 
     all_results = []
     total_batches = (len(dataset) + BATCH_SIZE - 1) // BATCH_SIZE
@@ -158,7 +157,7 @@ async def main():
 
         outputs, judge_scores = await run_batch(client, batch, prompt_config)
 
-        for case, output, judge_score in zip(batch, outputs, judge_scores):
+        for case, output, judge_score in zip(batch, outputs, judge_scores, strict=True):
             expected = case["expected_output"]
             category_match = output["category"].strip().lower() == expected["category"].strip().lower()
 

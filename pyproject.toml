@@ -26,6 +26,12 @@ ignore = [
     "B008",  # do not perform function calls in argument defaults
 ]
 
+[tool.ruff.lint.per-file-ignores]
+"Scripts/__init__.py" = ["N999"]
+"src/async_eval_classifier.py" = ["E402"]
+"src/generate_html_report.py" = ["E402"]
+"src/run_model_on_golden.py" = ["E402"]
+
 [tool.ruff.lint.isort]
 known-first-party = ["src", "Scripts"]
 

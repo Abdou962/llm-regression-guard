@@ -48,7 +48,7 @@ def main():
         os.replace(raw_outputs_path, prev_outputs_path)
 
     # Load golden dataset
-    with open(golden_path, "r", encoding="utf-8") as f:
+    with open(golden_path, encoding="utf-8") as f:
         golden_data = json.load(f)
 
     # Decide classifier mode

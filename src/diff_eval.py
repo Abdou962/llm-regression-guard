@@ -9,7 +9,7 @@ from collections import defaultdict
 
 def load_results(path):
     """Load results and index by string ID."""
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         return {str(r["id"]): r for r in json.load(f)}
 
 
@@ -27,8 +27,8 @@ def get_category_accuracy(results):
 
 def main():
     # Configurable thresholds (via env or defaults)
-    WARNING_THRESHOLD = float(os.getenv("DIFF_WARNING_THRESHOLD", 0.03))   # 3%
-    CRITICAL_THRESHOLD = float(os.getenv("DIFF_CRITICAL_THRESHOLD", 0.08))  # 8%
+    warning_threshold = float(os.getenv("DIFF_WARNING_THRESHOLD", 0.03))   # 3%
+    critical_threshold = float(os.getenv("DIFF_CRITICAL_THRESHOLD", 0.08))  # 8%
 
     data_dir = os.path.join(os.path.dirname(__file__), "..", "data")
     prev_path = os.path.join(data_dir, "raw_outputs_prev.json")
@@ -44,8 +44,8 @@ def main():
             "global_pass_rate_curr": curr_pass,
             "delta": 0.0,
             "flag": "OK",
-            "warning_threshold": WARNING_THRESHOLD,
-            "critical_threshold": CRITICAL_THRESHOLD,
+            "warning_threshold": warning_threshold,
+            "critical_threshold": critical_threshold,
             "per_category_prev": get_category_accuracy(curr),
             "per_category_curr": get_category_accuracy(curr),
             "regressions": [],
@@ -66,15 +66,15 @@ def main():
     delta = curr_pass - prev_pass
 
     # Significance flag
-    if abs(delta) >= CRITICAL_THRESHOLD:
+    if abs(delta) >= critical_threshold:
         flag = "CRITICAL"
-    elif abs(delta) >= WARNING_THRESHOLD:
+    elif abs(delta) >= warning_threshold:
         flag = "WARNING"
     else:
         flag = "OK"
 
     print(f"Global pass rate: {prev_pass:.2%} -> {curr_pass:.2%} (delta {delta:+.2%})  [{flag}]")
-    print(f"  Thresholds: warning={WARNING_THRESHOLD*100:.1f}%, critical={CRITICAL_THRESHOLD*100:.1f}%")
+    print(f"  Thresholds: warning={warning_threshold*100:.1f}%, critical={critical_threshold*100:.1f}%")
 
     # Per-category accuracy
     prev_cat = get_category_accuracy(prev)
@@ -86,9 +86,9 @@ def main():
         p = prev_cat.get(cat, 0.0)
         c = curr_cat.get(cat, 0.0)
         cat_delta = c - p
-        if abs(cat_delta) >= CRITICAL_THRESHOLD:
+        if abs(cat_delta) >= critical_threshold:
             cat_flag = "CRITICAL"
-        elif abs(cat_delta) >= WARNING_THRESHOLD:
+        elif abs(cat_delta) >= warning_threshold:
             cat_flag = "WARNING"
         else:
             cat_flag = "OK"
@@ -114,8 +114,8 @@ def main():
         "global_pass_rate_curr": curr_pass,
         "delta": delta,
         "flag": flag,
-        "warning_threshold": WARNING_THRESHOLD,
-        "critical_threshold": CRITICAL_THRESHOLD,
+        "warning_threshold": warning_threshold,
+        "critical_threshold": critical_threshold,
         "per_category_prev": prev_cat,
         "per_category_curr": curr_cat,
         "regressions": regressions,

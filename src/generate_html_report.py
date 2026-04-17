@@ -10,14 +10,14 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
+from Scripts.slack_alerter import send_simple_alert
+from src.report_html import generate_html_report
 from src.report_utils import (
-    load_json,
-    get_prompt_metadata,
     extract_model_from_results,
+    get_prompt_metadata,
+    load_json,
     update_trend_history,
 )
-from src.report_html import generate_html_report
-from Scripts.slack_alerter import send_simple_alert
 
 
 def main():
@@ -57,21 +57,21 @@ def main():
     })
 
     # --- Slow drift detection ---
-    SLOW_DRIFT_WINDOW = 7
-    SLOW_DRIFT_THRESHOLD = float(os.getenv("SLOW_DRIFT_THRESHOLD", 0.90))
+    slow_drift_window = 7
+    slow_drift_threshold = float(os.getenv("SLOW_DRIFT_THRESHOLD", 0.90))
     slow_drift_alerted = False
 
-    if len(trend_data) >= SLOW_DRIFT_WINDOW:
-        last_runs = trend_data[-SLOW_DRIFT_WINDOW:]
-        avg = sum(t["pass_rate"] for t in last_runs) / SLOW_DRIFT_WINDOW
+    if len(trend_data) >= slow_drift_window:
+        last_runs = trend_data[-slow_drift_window:]
+        avg = sum(t["pass_rate"] for t in last_runs) / slow_drift_window
         # Only alert if no single run triggered a WARNING/CRITICAL, but avg is below threshold
         recent_flags = [
             (t.get("flag") or diff_data.get("flag") if t["timestamp"] == now else None)
             for t in last_runs
         ]
-        if avg < SLOW_DRIFT_THRESHOLD and all(f in (None, "OK") for f in recent_flags):
+        if avg < slow_drift_threshold and all(f in (None, "OK") for f in recent_flags):
             try:
-                msg = f"⏳ Slow drift detected: 7-run avg pass rate = {avg:.2%} (< {SLOW_DRIFT_THRESHOLD:.0%})"
+                msg = f"⏳ Slow drift detected: 7-run avg pass rate = {avg:.2%} (< {slow_drift_threshold:.0%})"
                 send_simple_alert(msg, status="warn")
                 print("[ALERT] Slow drift warning sent to Slack.")
                 slow_drift_alerted = True
@@ -104,7 +104,7 @@ def main():
     print(f"Status: {diff_data['flag']}")
     print(f"Regressions: {len(diff_data.get('regressions', []))} | Improvements: {len(diff_data.get('improvements', []))}")
     if slow_drift_alerted:
-        print(f"[SLOW DRIFT] 7-run moving average below threshold: {SLOW_DRIFT_THRESHOLD:.0%}")
+        print(f"[SLOW DRIFT] 7-run moving average below threshold: {slow_drift_threshold:.0%}")
     print(f"{'='*60}")
 
     # Auto-open report in browser

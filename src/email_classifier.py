@@ -7,7 +7,6 @@ import anthropic
 import yaml
 from pydantic import BaseModel
 
-
 # --- Interface contract ---
 VALID_CATEGORIES = ("billing", "technical", "account", "general", "feature_request", "security")
 
@@ -26,7 +25,7 @@ class PromptConfig(BaseModel):
 # --- Prompt loader ---
 def load_prompt_config(prompt_path: str) -> PromptConfig:
     """Load and validate a prompt configuration from a YAML file."""
-    with open(prompt_path, "r", encoding="utf-8") as f:
+    with open(prompt_path, encoding="utf-8") as f:
         data = yaml.safe_load(f)
     return PromptConfig(**data)
 

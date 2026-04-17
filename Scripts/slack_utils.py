@@ -12,4 +12,4 @@ def get_status_emoji(status):
         'warn': '⚠️',
         'fail': '🔴'
     }
-    return emojis.get(status, 'ℹ️')
+    return emojis.get(status, 'ℹ️')  # noqa: RUF001

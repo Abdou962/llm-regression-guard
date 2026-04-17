@@ -7,7 +7,6 @@ import sys
 
 import pytest
 
-
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 
@@ -47,7 +46,7 @@ def test_pipeline_outputs_valid_json():
     for filename in ("raw_outputs.json", "diff_report.json", "trend.json"):
         filepath = os.path.join(PROJECT_ROOT, "data", filename)
         if os.path.exists(filepath):
-            with open(filepath, "r", encoding="utf-8") as f:
+            with open(filepath, encoding="utf-8") as f:
                 data = json.load(f)
             assert data is not None, f"{filename} is empty"
             assert len(data) > 0, f"{filename} has no entries"
@@ -61,7 +60,7 @@ def test_raw_outputs_have_required_fields():
     if not os.path.exists(raw_path):
         pytest.skip("raw_outputs.json not found — run pipeline first")
 
-    with open(raw_path, "r", encoding="utf-8") as f:
+    with open(raw_path, encoding="utf-8") as f:
         data = json.load(f)
 
     required_fields = {"id", "input", "expected_output", "category_match", "raw_output"}
