@@ -1,12 +1,18 @@
 """
 Diff evaluation: compare current vs. previous run outputs.
 Computes global pass rate, per-category accuracy, and identifies regressions/improvements.
+Uses the DB for previous results when available, falls back to raw_outputs_prev.json.
 """
 
 import json
 import os
+import sys
 from collections import defaultdict
 from typing import Any
+
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 
 
 def load_results(path: str) -> dict[str, dict[str, Any]]:
@@ -27,6 +33,51 @@ def get_category_accuracy(results: dict[str, dict[str, Any]]) -> dict[str, float
     return {cat: (c / t if t else 0.0) for cat, (c, t) in per_cat.items()}
 
 
+def _load_previous_from_db() -> tuple[dict[str, dict[str, Any]] | None, int | None]:
+    """Try to load previous results from DB. Returns (results_dict, run_id) or (None, None).
+
+    The latest run is the current one (saved in Step 1), so we need the second-to-last.
+    """
+    try:
+        from src.db import get_connection, get_latest_runs, get_run_results_as_dict, init_db
+
+        conn = get_connection()
+        init_db(conn)
+        runs = get_latest_runs(conn, limit=2)
+        if len(runs) < 2:
+            conn.close()
+            return None, None
+        prev_run = runs[1]  # second most recent = previous run
+        prev_id = prev_run["id"]
+        results = get_run_results_as_dict(conn, prev_id)
+        conn.close()
+        if not results:
+            return None, None
+        print(f"[DB] Loaded previous results from run #{prev_id} ({len(results)} cases)")
+        return results, prev_id
+    except Exception as e:
+        print(f"[WARN] Could not load from DB: {e}")
+        return None, None
+
+
+def _save_diff_to_db(diff_report: dict[str, Any], current_run_id: int | None, prev_run_id: int | None) -> None:
+    """Save diff results to DB."""
+    try:
+        from src.db import get_connection, get_latest_run_id, init_db, save_diff
+
+        conn = get_connection()
+        init_db(conn)
+        run_id = current_run_id or get_latest_run_id(conn)
+        if run_id is None:
+            conn.close()
+            return
+        diff_id = save_diff(conn, run_id, prev_run_id, diff_report)
+        conn.close()
+        print(f"[DB] Diff #{diff_id} saved (run #{run_id} vs #{prev_run_id or 'none'})")
+    except Exception as e:
+        print(f"[WARN] Could not save diff to DB: {e}")
+
+
 def main() -> None:
     # Configurable thresholds (via env or defaults)
     warning_threshold = float(os.getenv("DIFF_WARNING_THRESHOLD", 0.03))  # 3%
@@ -36,31 +87,36 @@ def main() -> None:
     prev_path = os.path.join(data_dir, "raw_outputs_prev.json")
     curr_path = os.path.join(data_dir, "raw_outputs.json")
 
-    if not os.path.exists(prev_path):
-        print("[INFO] No previous outputs found. Skipping diff (first run).")
-        # Create a minimal diff report for the report generator
-        curr = load_results(curr_path)
-        curr_pass = sum(1 for r in curr.values() if r.get("category_match")) / len(curr) if curr else 0
-        diff_report = {
-            "global_pass_rate_prev": curr_pass,
-            "global_pass_rate_curr": curr_pass,
-            "delta": 0.0,
-            "flag": "OK",
-            "warning_threshold": warning_threshold,
-            "critical_threshold": critical_threshold,
-            "per_category_prev": get_category_accuracy(curr),
-            "per_category_curr": get_category_accuracy(curr),
-            "regressions": [],
-            "improvements": [],
-        }
-        output_path = os.path.join(data_dir, "diff_report.json")
-        with open(output_path, "w", encoding="utf-8") as f:
-            json.dump(diff_report, f, indent=2, ensure_ascii=False)
-        print(f"First-run diff report saved to {output_path}")
-        return
-
-    prev = load_results(prev_path)
     curr = load_results(curr_path)
+
+    # --- Try DB first for previous results, fall back to file ---
+    prev, prev_run_id = _load_previous_from_db()
+
+    if prev is None:
+        if os.path.exists(prev_path):
+            prev = load_results(prev_path)
+            print(f"[FILE] Loaded previous results from {prev_path}")
+        else:
+            print("[INFO] No previous outputs found. Skipping diff (first run).")
+            curr_pass = sum(1 for r in curr.values() if r.get("category_match")) / len(curr) if curr else 0
+            diff_report = {
+                "global_pass_rate_prev": curr_pass,
+                "global_pass_rate_curr": curr_pass,
+                "delta": 0.0,
+                "flag": "OK",
+                "warning_threshold": warning_threshold,
+                "critical_threshold": critical_threshold,
+                "per_category_prev": get_category_accuracy(curr),
+                "per_category_curr": get_category_accuracy(curr),
+                "regressions": [],
+                "improvements": [],
+            }
+            output_path = os.path.join(data_dir, "diff_report.json")
+            with open(output_path, "w", encoding="utf-8") as f:
+                json.dump(diff_report, f, indent=2, ensure_ascii=False)
+            print(f"First-run diff report saved to {output_path}")
+            _save_diff_to_db(diff_report, None, None)
+            return
 
     # Global pass rate
     prev_pass = sum(1 for r in prev.values() if r.get("category_match")) / len(prev) if prev else 0
@@ -127,6 +183,9 @@ def main() -> None:
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(diff_report, f, indent=2, ensure_ascii=False)
     print(f"\nDiff report saved to {output_path}")
+
+    # --- Save diff to DB ---
+    _save_diff_to_db(diff_report, None, prev_run_id)
 
 
 if __name__ == "__main__":
