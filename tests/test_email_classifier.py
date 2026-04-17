@@ -2,6 +2,7 @@
 Unit tests for the email classifier.
 Uses mocking to avoid calling the real Anthropic API.
 """
+
 import json
 import os
 from unittest.mock import MagicMock, patch
@@ -30,6 +31,7 @@ def _mock_anthropic_response(category: str, summary: str):
 
 # --- Parser tests ---
 
+
 class TestParseClassification:
     def test_valid_json(self):
         result = _parse_classification('{"category": "billing", "summary": "Billing issue."}')
@@ -53,14 +55,18 @@ class TestParseClassification:
 
 # --- Classifier tests (mocked API) ---
 
-@pytest.mark.parametrize("email,expected_category,expected_summary", [
-    ("I can't log in to my account.", "account", "User cannot access their account."),
-    ("My bill is wrong.", "billing", "Incorrect billing reported."),
-    ("The app crashes when I click send.", "technical", "App crashes on send action."),
-    ("What are your business hours?", "general", "Customer asks about hours."),
-    ("Can you add dark mode?", "feature_request", "User requests dark mode."),
-    ("I got a phishing email from you.", "security", "Phishing report."),
-])
+
+@pytest.mark.parametrize(
+    "email,expected_category,expected_summary",
+    [
+        ("I can't log in to my account.", "account", "User cannot access their account."),
+        ("My bill is wrong.", "billing", "Incorrect billing reported."),
+        ("The app crashes when I click send.", "technical", "App crashes on send action."),
+        ("What are your business hours?", "general", "Customer asks about hours."),
+        ("Can you add dark mode?", "feature_request", "User requests dark mode."),
+        ("I got a phishing email from you.", "security", "Phishing report."),
+    ],
+)
 def test_classify_email_with_mock(email, expected_category, expected_summary, dummy_prompt_config):
     """Test classification with mocked API responses."""
     mock_response = _mock_anthropic_response(expected_category, expected_summary)
@@ -102,6 +108,7 @@ def test_classify_email_retry_on_failure(dummy_prompt_config):
 
 
 # --- Prompt loading tests ---
+
 
 def test_load_prompt_config():
     """Test loading the real prompt YAML file."""

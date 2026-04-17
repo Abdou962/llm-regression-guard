@@ -1,6 +1,7 @@
 """
 Shared pytest fixtures for the LLM Regression Pipeline test suite.
 """
+
 import json
 import os
 import sys
@@ -15,7 +16,6 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 
-
 @pytest.fixture
 def dummy_prompt_config():
     """Reusable prompt configuration for tests (no API call)."""
@@ -27,7 +27,11 @@ def dummy_prompt_config():
             {"input": "I can't log in to my account.", "category": "account", "summary": "User cannot log in."},
             {"input": "My bill is wrong.", "category": "billing", "summary": "User has a billing issue."},
             {"input": "The app crashes when I click send.", "category": "technical", "summary": "App crashes on send."},
-            {"input": "What are your business hours?", "category": "general", "summary": "User asks about business hours."},
+            {
+                "input": "What are your business hours?",
+                "category": "general",
+                "summary": "User asks about business hours.",
+            },
         ],
     )
 

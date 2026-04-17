@@ -1,6 +1,7 @@
 """
 Generates the HTML diff report, updates trend history, and sends Slack alerts.
 """
+
 import os
 import sys
 from datetime import datetime
@@ -49,12 +50,15 @@ def main():
     }
 
     print("Updating trend history...")
-    trend_data = update_trend_history(trend_path, {
-        "timestamp": now,
-        "pass_rate": diff_data["global_pass_rate_curr"],
-        "prompt_version": prompt_version,
-        "model": model,
-    })
+    trend_data = update_trend_history(
+        trend_path,
+        {
+            "timestamp": now,
+            "pass_rate": diff_data["global_pass_rate_curr"],
+            "prompt_version": prompt_version,
+            "model": model,
+        },
+    )
 
     # --- Slow drift detection ---
     slow_drift_window = 7
@@ -65,10 +69,7 @@ def main():
         last_runs = trend_data[-slow_drift_window:]
         avg = sum(t["pass_rate"] for t in last_runs) / slow_drift_window
         # Only alert if no single run triggered a WARNING/CRITICAL, but avg is below threshold
-        recent_flags = [
-            (t.get("flag") or diff_data.get("flag") if t["timestamp"] == now else None)
-            for t in last_runs
-        ]
+        recent_flags = [(t.get("flag") or diff_data.get("flag") if t["timestamp"] == now else None) for t in last_runs]
         if avg < slow_drift_threshold and all(f in (None, "OK") for f in recent_flags):
             try:
                 msg = f"⏳ Slow drift detected: 7-run avg pass rate = {avg:.2%} (< {slow_drift_threshold:.0%})"
@@ -98,18 +99,23 @@ def main():
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(html_report)
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"Report saved to: {output_path}")
-    print(f"Summary: {diff_data['global_pass_rate_prev']:.2%} -> {diff_data['global_pass_rate_curr']:.2%} (Delta: {diff_data['delta']:+.2%})")
+    print(
+        f"Summary: {diff_data['global_pass_rate_prev']:.2%} -> {diff_data['global_pass_rate_curr']:.2%} (Delta: {diff_data['delta']:+.2%})"
+    )
     print(f"Status: {diff_data['flag']}")
-    print(f"Regressions: {len(diff_data.get('regressions', []))} | Improvements: {len(diff_data.get('improvements', []))}")
+    print(
+        f"Regressions: {len(diff_data.get('regressions', []))} | Improvements: {len(diff_data.get('improvements', []))}"
+    )
     if slow_drift_alerted:
         print(f"[SLOW DRIFT] 7-run moving average below threshold: {slow_drift_threshold:.0%}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
     # Auto-open report in browser
     try:
         import webbrowser
+
         webbrowser.open(os.path.abspath(output_path))
     except Exception as e:
         print(f"[INFO] Could not auto-open report: {e}")

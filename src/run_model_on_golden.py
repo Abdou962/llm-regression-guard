@@ -2,6 +2,7 @@
 Runs the email classifier on the golden dataset and saves raw outputs.
 Uses the real Claude classifier if ANTHROPIC_API_KEY is set, otherwise falls back to a dummy classifier.
 """
+
 import json
 import os
 import sys
@@ -23,7 +24,22 @@ def _dummy_classify(email_text: str) -> dict:
     """Rule-based fallback classifier for testing without API access."""
     text = (email_text or "").lower()
 
-    if any(w in text for w in ("account", "log in", "login", "locked", "password", "accnt", "2fa", "anmelden", "sesión", "acess", "acount")):
+    if any(
+        w in text
+        for w in (
+            "account",
+            "log in",
+            "login",
+            "locked",
+            "password",
+            "accnt",
+            "2fa",
+            "anmelden",
+            "sesión",
+            "acess",
+            "acount",
+        )
+    ):
         return {"category": "account", "summary": "Account access issue detected."}
     if any(w in text for w in ("invoice", "bill", "charged", "payment", "refund", "prorat")):
         return {"category": "billing", "summary": "Billing-related inquiry detected."}
@@ -57,6 +73,7 @@ def main():
 
     if use_real:
         from src.email_classifier import classify_email, load_prompt_config
+
         prompt_config = load_prompt_config(prompt_path)
         model = os.getenv("CLAUDE_MODEL", "claude-sonnet-4-20250514")
         print(f"[MODE] Real classifier — model: {model}")
@@ -73,17 +90,21 @@ def main():
         if not input_text:
             print(f"  [{i}/{total}] Skipping: input is None or empty.")
             expected = item.get("expected_output", {"category": "general", "summary": "No input provided."})
-            results.append({
-                "id": item.get("id", i),
-                "input": input_text,
-                "expected_output": expected,
-                "category": "general",
-                "summary": "No input provided.",
-                "category_match": expected.get("category") == "general",
-                "raw_output": json.dumps({"category": "general", "summary": "No input provided."}, ensure_ascii=False),
-                "latency": 0.0,
-                "token_usage": {"model": "skip", "timestamp": datetime.now().isoformat()},
-            })
+            results.append(
+                {
+                    "id": item.get("id", i),
+                    "input": input_text,
+                    "expected_output": expected,
+                    "category": "general",
+                    "summary": "No input provided.",
+                    "category_match": expected.get("category") == "general",
+                    "raw_output": json.dumps(
+                        {"category": "general", "summary": "No input provided."}, ensure_ascii=False
+                    ),
+                    "latency": 0.0,
+                    "token_usage": {"model": "skip", "timestamp": datetime.now().isoformat()},
+                }
+            )
             continue
 
         expected = item.get("expected_output", {"category": "", "summary": ""})
@@ -103,30 +124,34 @@ def main():
 
         category_match = model_output["category"].strip().lower() == expected.get("category", "").strip().lower()
 
-        results.append({
-            "id": item.get("id", i),
-            "input": input_text,
-            "expected_output": expected,
-            "category": model_output["category"],
-            "summary": model_output["summary"],
-            "category_match": category_match,
-            "raw_output": json.dumps(model_output, ensure_ascii=False),
-            "latency": round(latency, 3),
-            "token_usage": {
-                "model": model if use_real else "dummy",
-                "timestamp": datetime.now().isoformat(),
-            },
-        })
+        results.append(
+            {
+                "id": item.get("id", i),
+                "input": input_text,
+                "expected_output": expected,
+                "category": model_output["category"],
+                "summary": model_output["summary"],
+                "category_match": category_match,
+                "raw_output": json.dumps(model_output, ensure_ascii=False),
+                "latency": round(latency, 3),
+                "token_usage": {
+                    "model": model if use_real else "dummy",
+                    "timestamp": datetime.now().isoformat(),
+                },
+            }
+        )
 
         status = "PASS" if category_match else "FAIL"
-        print(f"  [{i}/{total}] {status} id={item.get('id', i)}  expected={expected.get('category')}  got={model_output['category']}  ({latency:.2f}s)")
+        print(
+            f"  [{i}/{total}] {status} id={item.get('id', i)}  expected={expected.get('category')}  got={model_output['category']}  ({latency:.2f}s)"
+        )
 
     # Save results
     with open(raw_outputs_path, "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2, ensure_ascii=False)
 
     pass_count = sum(1 for r in results if r["category_match"])
-    print(f"\nDone: {pass_count}/{len(results)} passed ({pass_count/len(results):.1%})")
+    print(f"\nDone: {pass_count}/{len(results)} passed ({pass_count / len(results):.1%})")
     print(f"Results saved to {raw_outputs_path}")
 
 

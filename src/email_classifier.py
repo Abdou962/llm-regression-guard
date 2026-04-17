@@ -10,6 +10,7 @@ from pydantic import BaseModel
 # --- Interface contract ---
 VALID_CATEGORIES = ("billing", "technical", "account", "general", "feature_request", "security")
 
+
 class EmailClassification(BaseModel):
     category: Literal["billing", "technical", "account", "general", "feature_request", "security"]
     summary: str
@@ -70,7 +71,7 @@ def _parse_classification(raw_text: str) -> dict:
     if cat_match:
         return {
             "category": cat_match.group(1).lower(),
-            "summary": sum_match.group(1) if sum_match else "No summary extracted."
+            "summary": sum_match.group(1) if sum_match else "No summary extracted.",
         }
 
     raise ValueError(f"Could not parse classification from model output: {raw_text[:200]}")
@@ -98,13 +99,11 @@ def classify_email(
         EmailClassification with category and summary.
     """
 
-
     # Build the user prompt with few-shot examples
     user_prompt = ""
     for ex in prompt_config.examples:
         user_prompt += (
-            f"Email: {ex['input']}\n"
-            f"Response: {{\"category\": \"{ex['category']}\", \"summary\": \"{ex['summary']}\"}}\n\n"
+            f'Email: {ex["input"]}\nResponse: {{"category": "{ex["category"]}", "summary": "{ex["summary"]}"}}\n\n'
         )
     user_prompt += f"Email: {email_text}\nResponse:"
 
@@ -137,7 +136,4 @@ def classify_email(
                 continue
             break
 
-    raise ValueError(
-        f"Failed to classify email after {max_retries} attempts. "
-        f"Last error: {last_error}"
-    )
+    raise ValueError(f"Failed to classify email after {max_retries} attempts. Last error: {last_error}")

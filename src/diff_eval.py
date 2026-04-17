@@ -2,6 +2,7 @@
 Diff evaluation: compare current vs. previous run outputs.
 Computes global pass rate, per-category accuracy, and identifies regressions/improvements.
 """
+
 import json
 import os
 from collections import defaultdict
@@ -27,7 +28,7 @@ def get_category_accuracy(results):
 
 def main():
     # Configurable thresholds (via env or defaults)
-    warning_threshold = float(os.getenv("DIFF_WARNING_THRESHOLD", 0.03))   # 3%
+    warning_threshold = float(os.getenv("DIFF_WARNING_THRESHOLD", 0.03))  # 3%
     critical_threshold = float(os.getenv("DIFF_CRITICAL_THRESHOLD", 0.08))  # 8%
 
     data_dir = os.path.join(os.path.dirname(__file__), "..", "data")
@@ -74,7 +75,7 @@ def main():
         flag = "OK"
 
     print(f"Global pass rate: {prev_pass:.2%} -> {curr_pass:.2%} (delta {delta:+.2%})  [{flag}]")
-    print(f"  Thresholds: warning={warning_threshold*100:.1f}%, critical={critical_threshold*100:.1f}%")
+    print(f"  Thresholds: warning={warning_threshold * 100:.1f}%, critical={critical_threshold * 100:.1f}%")
 
     # Per-category accuracy
     prev_cat = get_category_accuracy(prev)

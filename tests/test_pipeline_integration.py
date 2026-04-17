@@ -1,6 +1,7 @@
 """
 Integration test: runs the full pipeline end-to-end and verifies outputs.
 """
+
 import os
 import subprocess
 import sys

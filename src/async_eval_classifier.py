@@ -2,6 +2,7 @@
 Async evaluation classifier — runs the email classifier on the golden dataset
 using async I/O for parallel processing with LLM-as-judge scoring.
 """
+
 import asyncio
 import json
 import os
@@ -28,8 +29,7 @@ async def classify_email_async(client, email_text: str, prompt_config: PromptCon
     user_prompt = ""
     for ex in prompt_config.examples:
         user_prompt += (
-            f"Email: {ex['input']}\n"
-            f"Response: {{\"category\": \"{ex['category']}\", \"summary\": \"{ex['summary']}\"}}\n\n"
+            f'Email: {ex["input"]}\nResponse: {{"category": "{ex["category"]}", "summary": "{ex["summary"]}"}}\n\n'
         )
     user_prompt += f"Email: {email_text}\nResponse:"
 
@@ -107,10 +107,7 @@ async def judge_summary_async(client, email_text: str, expected_summary: str, pr
 async def run_batch(client, batch: list, prompt_config: PromptConfig) -> tuple:
     """Run classification and judging for a batch of cases."""
     # Classify in parallel
-    classify_tasks = [
-        classify_email_async(client, case.get("input") or "", prompt_config)
-        for case in batch
-    ]
+    classify_tasks = [classify_email_async(client, case.get("input") or "", prompt_config) for case in batch]
     results = await asyncio.gather(*classify_tasks)
 
     # Judge summaries in parallel
@@ -126,7 +123,9 @@ async def run_batch(client, batch: list, prompt_config: PromptConfig) -> tuple:
                 )
             )
         else:
-            judge_tasks.append(asyncio.coroutine(lambda: None)() if sys.version_info < (3, 11) else asyncio.sleep(0, result=None))
+            judge_tasks.append(
+                asyncio.coroutine(lambda: None)() if sys.version_info < (3, 11) else asyncio.sleep(0, result=None)
+            )
 
     judge_scores = await asyncio.gather(*judge_tasks)
     return results, judge_scores
@@ -161,20 +160,22 @@ async def main():
             expected = case["expected_output"]
             category_match = output["category"].strip().lower() == expected["category"].strip().lower()
 
-            all_results.append({
-                "id": case["id"],
-                "input": case.get("input"),
-                "expected_output": expected,
-                "category": output["category"],
-                "summary": output["summary"],
-                "category_match": category_match,
-                "summary_judge_score": judge_score,
-                "latency": output["latency"],
-                "token_usage": output["token_usage"],
-                "raw_output": output["raw_output"],
-                "expected_difficulty": case.get("expected_difficulty", ""),
-                "notes": case.get("notes", ""),
-            })
+            all_results.append(
+                {
+                    "id": case["id"],
+                    "input": case.get("input"),
+                    "expected_output": expected,
+                    "category": output["category"],
+                    "summary": output["summary"],
+                    "category_match": category_match,
+                    "summary_judge_score": judge_score,
+                    "latency": output["latency"],
+                    "token_usage": output["token_usage"],
+                    "raw_output": output["raw_output"],
+                    "expected_difficulty": case.get("expected_difficulty", ""),
+                    "notes": case.get("notes", ""),
+                }
+            )
 
         print(f"  Batch {batch_num}/{total_batches}: {len(batch)} cases processed.")
 

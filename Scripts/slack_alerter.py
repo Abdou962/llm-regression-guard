@@ -1,6 +1,7 @@
 """
 Slack alerting module — sends formatted alerts via webhook.
 """
+
 import os
 from datetime import datetime
 
@@ -9,6 +10,7 @@ import requests
 # Load .env from project root
 try:
     from dotenv import load_dotenv
+
     _env_path = os.path.join(os.path.dirname(__file__), "..", ".env")
     load_dotenv(os.path.abspath(_env_path))
 except ImportError:
