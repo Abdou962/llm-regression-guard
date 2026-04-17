@@ -166,7 +166,9 @@ def main():
             "flag": "OK",
             "delta": 0.0,
         }
-        run_id = save_run(conn, run_diff, results, model_name, "v1_billing_classifier", mode="real" if use_real else "dummy")
+        run_id = save_run(
+            conn, run_diff, results, model_name, "v1_billing_classifier", mode="real" if use_real else "dummy"
+        )
         conn.close()
         print(f"[DB] Run #{run_id} saved to pipeline_history.db")
     except Exception as e:

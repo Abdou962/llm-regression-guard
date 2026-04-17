@@ -22,6 +22,7 @@ from src.db import (
 
 # ── Fixtures ──────────────────────────────────────────────
 
+
 def _make_conn() -> sqlite3.Connection:
     """Create an in-memory SQLite connection with tables."""
     conn = get_connection(":memory:")
@@ -72,9 +73,7 @@ def _sample_diff_data(flag: str = "OK", delta: float = 0.0) -> dict:
 
 def test_init_db_creates_tables():
     conn = _make_conn()
-    tables = conn.execute(
-        "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
-    ).fetchall()
+    tables = conn.execute("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name").fetchall()
     table_names = {r["name"] for r in tables}
     assert "runs" in table_names
     assert "classifications" in table_names
@@ -149,6 +148,7 @@ def test_save_multiple_runs():
     assert runs[0]["id"] == id2  # newest first
     conn.close()
 
+
 def test_get_run_not_found():
     conn = _make_conn()
     assert get_run(conn, 999) is None
@@ -163,6 +163,7 @@ def test_get_latest_runs_respects_limit():
     assert len(runs) == 3
     assert runs[0]["prompt_version"] == "v4"  # newest
     conn.close()
+
 
 def test_get_case_history():
     conn = _make_conn()
@@ -207,6 +208,7 @@ def test_get_category_history_with_failures():
 
 # ── compare_runs ──────────────────────────────────────────
 
+
 def test_compare_identical_runs():
     conn = _make_conn()
     id1 = save_run(conn, _sample_diff_data(), _sample_raw_outputs(), "dummy", "v1")
@@ -237,6 +239,7 @@ def test_compare_different_runs():
 
 # ── get_summary_stats ─────────────────────────────────────
 
+
 def test_summary_stats_empty_db():
     conn = _make_conn()
     stats = get_summary_stats(conn)
@@ -258,6 +261,7 @@ def test_summary_stats_with_data():
 
 # ── get_latest_run_id ─────────────────────────────────────
 
+
 def test_get_latest_run_id_empty():
     conn = _make_conn()
     assert get_latest_run_id(conn) is None
@@ -273,6 +277,7 @@ def test_get_latest_run_id_returns_newest():
 
 
 # ── get_run_results_as_dict ───────────────────────────────
+
 
 def test_get_run_results_as_dict_format():
     conn = _make_conn()
@@ -296,6 +301,7 @@ def test_get_run_results_as_dict_empty_run():
 
 
 # ── save_diff / get_diff ──────────────────────────────────
+
 
 def _sample_full_diff_data() -> dict:
     return {
@@ -353,6 +359,7 @@ def test_save_diff_no_prev_run():
 
 
 # ── get_latest_diffs ──────────────────────────────────────
+
 
 def test_get_latest_diffs():
     conn = _make_conn()
