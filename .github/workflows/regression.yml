@@ -86,7 +86,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run unit tests
-        run: python -m pytest tests/ -v --tb=short --junitxml=test-results.xml --cov=src --cov=Scripts --cov-report=term-missing
+        run: python -m pytest tests/ -v --tb=short --junitxml=test-results.xml --cov=src --cov=Scripts --cov-report=term-missing --cov-fail-under=50
 
       - name: Upload test results
         if: always()
@@ -122,7 +122,7 @@ jobs:
         run: python run_full_pipeline.py
 
       - name: Run integration tests
-        run: python -m pytest tests/test_pipeline_integration.py -v --tb=short
+        run: python -m pytest tests/test_pipeline_integration.py -v --tb=short --no-cov
 
       - name: Upload regression report
         if: always()

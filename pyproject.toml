@@ -41,6 +41,13 @@ indent-style = "space"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-v --tb=short --cov=src --cov=Scripts --cov-report=term-missing --cov-fail-under=50"
+addopts = "-v --tb=short"
 python_files = "test_*.py"
 python_functions = "test_*"
+
+[tool.coverage.run]
+source = ["src", "Scripts"]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 50
