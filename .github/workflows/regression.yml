@@ -86,7 +86,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run unit tests
-        run: python -m pytest tests/test_email_classifier.py -v --tb=short --junitxml=test-results.xml
+        run: python -m pytest tests/ -v --tb=short --junitxml=test-results.xml --cov=src --cov=Scripts --cov-report=term-missing
 
       - name: Upload test results
         if: always()
