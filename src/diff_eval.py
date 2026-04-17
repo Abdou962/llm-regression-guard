@@ -6,15 +6,16 @@ Computes global pass rate, per-category accuracy, and identifies regressions/imp
 import json
 import os
 from collections import defaultdict
+from typing import Any
 
 
-def load_results(path):
+def load_results(path: str) -> dict[str, dict[str, Any]]:
     """Load results and index by string ID."""
     with open(path, encoding="utf-8") as f:
         return {str(r["id"]): r for r in json.load(f)}
 
 
-def get_category_accuracy(results):
+def get_category_accuracy(results: dict[str, dict[str, Any]]) -> dict[str, float]:
     """Compute per-category accuracy from results."""
     per_cat = defaultdict(lambda: [0, 0])  # [correct, total]
     for r in results.values():
@@ -26,7 +27,7 @@ def get_category_accuracy(results):
     return {cat: (c / t if t else 0.0) for cat, (c, t) in per_cat.items()}
 
 
-def main():
+def main() -> None:
     # Configurable thresholds (via env or defaults)
     warning_threshold = float(os.getenv("DIFF_WARNING_THRESHOLD", 0.03))  # 3%
     critical_threshold = float(os.getenv("DIFF_CRITICAL_THRESHOLD", 0.08))  # 8%

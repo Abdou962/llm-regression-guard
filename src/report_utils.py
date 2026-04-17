@@ -1,26 +1,27 @@
 import json
 import os
 import re
+from typing import Any
 
 import yaml
 
 
-def load_json(path):
+def load_json(path: str) -> Any:
     with open(path, encoding="utf-8") as f:
         return json.load(f)
 
 
-def save_json(path, data):
+def save_json(path: str, data: Any) -> None:
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
 
-def load_yaml(path):
+def load_yaml(path: str) -> Any:
     with open(path, encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
-def get_prompt_metadata(prompt_path):
+def get_prompt_metadata(prompt_path: str) -> tuple[str, str]:
     try:
         prompt = load_yaml(prompt_path)
         version = prompt.get("version", "unknown")
@@ -31,7 +32,7 @@ def get_prompt_metadata(prompt_path):
         return "unknown", "unknown"
 
 
-def extract_model_from_results(raw_outputs_path):
+def extract_model_from_results(raw_outputs_path: str) -> str:
     try:
         data = load_json(raw_outputs_path)
         if not data:
@@ -57,7 +58,7 @@ def extract_model_from_results(raw_outputs_path):
         return "unknown"
 
 
-def update_trend_history(trend_path, run_data):
+def update_trend_history(trend_path: str, run_data: dict[str, Any]) -> list[dict[str, Any]]:
     history = []
     if os.path.exists(trend_path):
         try:

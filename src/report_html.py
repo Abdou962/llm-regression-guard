@@ -1,4 +1,5 @@
 import html as _html
+from typing import Any
 
 
 def _esc(text: str) -> str:
@@ -8,7 +9,13 @@ def _esc(text: str) -> str:
     return _html.escape(text, quote=True)
 
 
-def generate_html_report(diff_data, prev_data, curr_data, metadata, trend_data):
+def generate_html_report(
+    diff_data: dict[str, Any],
+    prev_data: list[dict[str, Any]],
+    curr_data: list[dict[str, Any]],
+    metadata: dict[str, Any],
+    trend_data: list[dict[str, Any]],
+) -> str:
     prev_map = {str(item.get("id", "")): item for item in prev_data}
     curr_map = {str(item.get("id", "")): item for item in curr_data}
 
