@@ -123,48 +123,6 @@ python -m pytest tests/test_db.py -v                 # DB tests only
 ```
 
 
-## Project Structure
-
-```
-├── run_full_pipeline.py        # Pipeline orchestrator
-├── src/
-│   ├── email_classifier.py     # Claude API classifier
-│   ├── async_eval_classifier.py # Async batch eval
-│   ├── run_model_on_golden.py  # Step 1: classify + save to DB
-│   ├── diff_eval.py            # Step 2: diff (DB-backed)
-│   ├── generate_html_report.py # Step 3: report + alerts
-│   ├── db.py                   # SQLite storage
-│   ├── report_html.py          # HTML generation
-│   └── report_utils.py         # JSON/YAML utilities
-├── Scripts/
-│   ├── slack_alerter.py        # Slack webhook
-│   └── slack_utils.py          # Status colors/emojis
-├── data/
-│   ├── golden_dataset_v1.json  # 40 hand-labeled test cases
-│   ├── raw_outputs.json        # Current run results
-│   ├── diff_report.json        # Comparison results
-│   ├── diff_report.html        # HTML report
-│   ├── trend.json              # Pass rate history
-│   └── pipeline_history.db     # SQLite run history (generated)
-├── prompts/
-│   └── v1_billing_classifier.yaml
-├── tests/                      # 129 tests
-│   ├── test_email_classifier.py
-│   ├── test_db.py              # 28 DB tests
-│   ├── test_diff_eval.py
-│   ├── test_report_html.py
-│   ├── test_report_utils.py
-│   ├── test_dummy_classifier.py
-│   ├── test_slack.py
-│   └── test_pipeline_integration.py
-├── .github/workflows/
-│   └── regression.yml          # CI: lint, test, regression, docker
-├── Dockerfile
-├── pyproject.toml
-└── requirements.txt
-```
-
-
 ## Classifier Modes
 
 | Mode | When | How |
@@ -206,9 +164,3 @@ GitHub Actions workflow (`.github/workflows/regression.yml`) runs 5 jobs:
 
 Artifacts (reports + DB) are uploaded with 30-day (dummy) / 90-day (real) retention.
 
-
-## Categories
-
-6 valid categories: `billing`, `technical`, `account`, `general`, `feature_request`, `security`
-
----
