@@ -20,7 +20,6 @@ from src.db import (
     save_run,
 )
 
-
 # ── Fixtures ──────────────────────────────────────────────
 
 def _make_conn() -> sqlite3.Connection:
@@ -85,8 +84,8 @@ def test_init_db_creates_tables():
 
 def test_init_db_is_idempotent():
     conn = _make_conn()
-    init_db(conn)  
-    init_db(conn)  
+    init_db(conn)
+    init_db(conn)
     conn.close()
 
 
