@@ -123,9 +123,7 @@ async def run_batch(client, batch: list, prompt_config: PromptConfig) -> tuple:
                 )
             )
         else:
-            judge_tasks.append(
-                asyncio.coroutine(lambda: None)() if sys.version_info < (3, 11) else asyncio.sleep(0, result=None)
-            )
+            judge_tasks.append(asyncio.sleep(0, result=None))
 
     judge_scores = await asyncio.gather(*judge_tasks)
     return results, judge_scores
