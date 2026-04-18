@@ -1,12 +1,12 @@
-import sys, os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-"""
-Quick script to test IMAP connection and fetch a few emails using current .env config.
-"""
+import os
+import sys
+
+from dotenv import load_dotenv
 
 from src.email_fetcher import IMAPConfig, fetch_unread_emails
-from dotenv import load_dotenv
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 load_dotenv()
 
 if __name__ == "__main__":

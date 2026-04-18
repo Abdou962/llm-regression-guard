@@ -10,19 +10,21 @@ The user reviews each proposal from preclassify_emails() and can:
 Validated entries are returned in golden-dataset format, ready for injection.
 """
 
+
 import json
 import os
 import sys
 from typing import Any
 
 from dotenv import load_dotenv
-load_dotenv()
+
+from src.email_classifier import VALID_CATEGORIES
+from src.preclassify import preclassify_emails
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
-
-from src.email_classifier import VALID_CATEGORIES  # noqa: E402
+load_dotenv()
 
 # -- Helpers -----------------------------------------------------------------
 

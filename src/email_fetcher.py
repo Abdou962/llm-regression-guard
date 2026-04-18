@@ -6,6 +6,8 @@ strips HTML junk, and returns clean dicts ready to feed
 into the classification pipeline.
 """
 
+
+
 import contextlib
 import email
 import html
@@ -15,11 +17,14 @@ import re
 from dataclasses import dataclass
 from datetime import datetime
 from email.header import decode_header
+from email.message import Message
 from email.utils import parsedate_to_datetime
 from html.parser import HTMLParser
 from typing import Any
-from email.message import Message
 
+from dotenv import load_dotenv
+
+load_dotenv()
 
 @dataclass
 class IMAPConfig:

@@ -7,14 +7,17 @@ Usage:
 Fetches emails, preclassifies, and injects directly into golden_dataset_v1.json.
 """
 
-from dotenv import load_dotenv
-load_dotenv()
+
 
 import os
-import json
+
+from dotenv import load_dotenv
+
 from src.email_fetcher import IMAPConfig, fetch_unread_emails
+from src.inject_auto import load_json, next_id, proposal_to_golden, save_json
 from src.preclassify import preclassify_emails
-from src.inject_auto import proposal_to_golden, next_id, load_json, save_json
+
+load_dotenv()
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 GOLDEN_PATH = os.path.join(PROJECT_ROOT, "data", "golden_dataset_v1.json")
