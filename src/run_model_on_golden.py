@@ -155,24 +155,20 @@ def main():
     print(f"Results saved to {raw_outputs_path}")
 
     # --- Save run + classifications to DB ---
-    try:
-        from src.db import get_connection, init_db, save_run
+    from src.db import get_connection, init_db, save_run
 
-        model_name = model if use_real else "dummy"
-        conn = get_connection()
-        init_db(conn)
-        # Minimal diff_data for the run record (full diff computed in step 2)
-        run_diff = {
-            "flag": "OK",
-            "delta": 0.0,
-        }
-        run_id = save_run(
-            conn, run_diff, results, model_name, "v1_billing_classifier", mode="real" if use_real else "dummy"
-        )
-        conn.close()
-        print(f"[DB] Run #{run_id} saved to pipeline_history.db")
-    except Exception as e:
-        print(f"[WARN] Could not save to DB: {e}")
+    model_name = model if use_real else "dummy"
+    conn = get_connection()
+    init_db(conn)
+    run_diff = {
+        "flag": "OK",
+        "delta": 0.0,
+    }
+    run_id = save_run(
+        conn, run_diff, results, model_name, "v1_billing_classifier", mode="real" if use_real else "dummy"
+    )
+    conn.close()
+    print(f"[DB] Run #{run_id} saved to pipeline_history.db")
 
 
 if __name__ == "__main__":

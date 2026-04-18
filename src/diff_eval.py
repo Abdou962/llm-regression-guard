@@ -62,20 +62,17 @@ def _load_previous_from_db() -> tuple[dict[str, dict[str, Any]] | None, int | No
 
 def _save_diff_to_db(diff_report: dict[str, Any], current_run_id: int | None, prev_run_id: int | None) -> None:
     """Save diff results to DB."""
-    try:
-        from src.db import get_connection, get_latest_run_id, init_db, save_diff
+    from src.db import get_connection, get_latest_run_id, init_db, save_diff
 
-        conn = get_connection()
-        init_db(conn)
-        run_id = current_run_id or get_latest_run_id(conn)
-        if run_id is None:
-            conn.close()
-            return
-        diff_id = save_diff(conn, run_id, prev_run_id, diff_report)
+    conn = get_connection()
+    init_db(conn)
+    run_id = current_run_id or get_latest_run_id(conn)
+    if run_id is None:
         conn.close()
-        print(f"[DB] Diff #{diff_id} saved (run #{run_id} vs #{prev_run_id or 'none'})")
-    except Exception as e:
-        print(f"[WARN] Could not save diff to DB: {e}")
+        return
+    diff_id = save_diff(conn, run_id, prev_run_id, diff_report)
+    conn.close()
+    print(f"[DB] Diff #{diff_id} saved (run #{run_id} vs #{prev_run_id or 'none'})")
 
 
 def main() -> None:
