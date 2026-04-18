@@ -6,6 +6,8 @@ strips HTML junk, and returns clean dicts ready to feed
 into the classification pipeline.
 """
 
+
+
 import contextlib
 import email
 import html
@@ -15,10 +17,14 @@ import re
 from dataclasses import dataclass
 from datetime import datetime
 from email.header import decode_header
+from email.message import Message
 from email.utils import parsedate_to_datetime
 from html.parser import HTMLParser
 from typing import Any
 
+from dotenv import load_dotenv
+
+load_dotenv()
 
 @dataclass
 class IMAPConfig:
@@ -98,7 +104,7 @@ def _decode_header(value: str | None) -> str:
     return " ".join(decoded)
 
 
-def _extract_body(msg: email.message.Message) -> str:
+def _extract_body(msg: Message) -> str:
     """Pull the text body out of a MIME message. Prefers plain text over HTML."""
     # Simple single-part message
     if not msg.is_multipart():
@@ -134,7 +140,7 @@ def _extract_body(msg: email.message.Message) -> str:
     return ""
 
 
-def _parse_date(msg: email.message.Message) -> str:
+def _parse_date(msg: Message) -> str:
     """Get the Date header as ISO string. Falls back to now() if unparseable."""
     date_str = msg.get("Date")
     if date_str:
