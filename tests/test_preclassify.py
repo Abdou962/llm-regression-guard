@@ -1,11 +1,8 @@
-"""Tests for src/preclassify.py — pre-classification of fetched emails."""
-
 from unittest.mock import patch
 
 import pytest
 
 from src.preclassify import _dummy_classify, _is_real_mode, preclassify_emails
-
 
 # -- Dummy classifier -------------------------------------------------------
 
@@ -112,9 +109,9 @@ class TestPreclassifyEmails:
     def test_classifies_correctly_in_dummy_mode(self, monkeypatch, sample_emails):
         monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
         proposals = preclassify_emails(sample_emails)
-        assert proposals[0]["proposed_category"] == "account"  # "login" keyword
-        assert proposals[1]["proposed_category"] == "billing"  # "charged" keyword
-        assert proposals[2]["proposed_category"] == "general"  # no keyword match
+        assert proposals[0]["proposed_category"] == "account"
+        assert proposals[1]["proposed_category"] == "billing"
+        assert proposals[2]["proposed_category"] == "general"
 
     def test_mode_is_dummy(self, monkeypatch, sample_emails):
         monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)

@@ -12,7 +12,6 @@ from typing import Any
 
 from src.email_classifier import VALID_CATEGORIES
 
-
 # -- Dummy classifier (same logic as run_model_on_golden) --------------------
 
 
