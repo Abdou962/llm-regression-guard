@@ -1,7 +1,7 @@
 {
   "global_pass_rate_prev": 0.925,
-  "global_pass_rate_curr": 0.925,
-  "delta": 0.0,
+  "global_pass_rate_curr": 0.9302325581395349,
+  "delta": 0.005232558139534826,
   "flag": "OK",
   "warning_threshold": 0.03,
   "critical_threshold": 0.08,
@@ -14,13 +14,17 @@
     "security": 1.0
   },
   "per_category_curr": {
-    "account": 0.8333333333333334,
+    "account": 0.8461538461538461,
     "billing": 1.0,
-    "technical": 0.8571428571428571,
+    "technical": 0.875,
     "general": 1.0,
     "feature_request": 1.0,
     "security": 1.0
   },
   "regressions": [],
-  "improvements": []
+  "improvements": [
+    "041",
+    "042",
+    "043"
+  ]
 }

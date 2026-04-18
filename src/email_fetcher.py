@@ -18,6 +18,7 @@ from email.header import decode_header
 from email.utils import parsedate_to_datetime
 from html.parser import HTMLParser
 from typing import Any
+from email.message import Message
 
 
 @dataclass
@@ -98,7 +99,7 @@ def _decode_header(value: str | None) -> str:
     return " ".join(decoded)
 
 
-def _extract_body(msg: email.message.Message) -> str:
+def _extract_body(msg: Message) -> str:
     """Pull the text body out of a MIME message. Prefers plain text over HTML."""
     # Simple single-part message
     if not msg.is_multipart():
@@ -134,7 +135,7 @@ def _extract_body(msg: email.message.Message) -> str:
     return ""
 
 
-def _parse_date(msg: email.message.Message) -> str:
+def _parse_date(msg: Message) -> str:
     """Get the Date header as ISO string. Falls back to now() if unparseable."""
     date_str = msg.get("Date")
     if date_str:
